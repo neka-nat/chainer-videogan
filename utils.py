@@ -10,7 +10,7 @@ class DataLoader(object):
         self._crop_size = 64
         self._image_size = 128
         self._data_list_path = os.path.join(self._root_path, 'golf.txt')
-        with open(self.data_list_path, 'r') as f:
+        with open(self._data_list_path, 'r') as f:
             self._video_index = [x.strip() for x in f.readlines()]
             np.random.shuffle(self._video_index)
         self._cursor = 0
@@ -31,7 +31,7 @@ class DataLoader(object):
                 else:
                     cut = (count - 1) * self._image_size
                 crop = inputimage[cut : cut + self._image_size, :]
-                out[idx, j, :, :, :] = cv2.resize(crop, (self._crop_size, self._crop_size))
+                out[idx, j, :, :, :] = np.transpose(cv2.resize(crop, (self._crop_size, self._crop_size)), (2, 0, 1))
 
         out = np.transpose(out, (0, 2, 1, 3, 4))
         out = (out - 128.0) / 128.0

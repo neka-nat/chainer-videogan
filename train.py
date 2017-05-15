@@ -1,5 +1,5 @@
 from __future__ import print_function
-import argparser
+import argparse
 import chainer
 from chainer import optimizers
 from chainer import cuda
