@@ -1,21 +1,27 @@
 from __future__ import print_function
+import argparser
 import chainer
 from chainer import optimizers
 from chainer import cuda
 import numpy as np
 from model import Generator, Discriminator
+from utils import DataLoader
+
+parser = argparse.ArgumentParser(description='Train video-gan.')
+parser.add_argument('--data_dir', '-d', type=str, default='.', help='Data directory.')
+args = parser.parse_args()
 
 nz = 100 # of dim for Z
-batchsize = 100
+batchsize = 64
 n_epoch = 10000
 n_train = 200000
 save_interval = 50000
 result_dir = './result'
 model_dir = './model'
 frame_size = 32
-image_shape = (64, 64)
 xp = cuda.cupy
 cuda.get_device(0).use()
+loader = DataLoader(args.data_dir, batchsize)
 
 def clip_img(x):
     return np.float32(max(min(1, x), -1))
@@ -42,19 +48,7 @@ def train(gen, dis, epoch0=0):
             # 1: from noise
 
             #print "load image start ", i
-            x2 = np.zeros((batchsize, frame_size, 3, image_shape[0], image_shape[1]), dtype=np.float32)
-            for j in range(batchsize):
-                try:
-                    rnd = np.random.randint(len(dataset))
-                    rnd2 = np.random.randint(2)
-                    img = np.asarray(Image.open(StringIO(dataset[rnd])).convert('RGB')).astype(np.float32).transpose(2, 0, 1)
-                    if rnd2==0:
-                        x2[j, :, :, :, :] = (img[:, :, :, ::-1] - 128.0) / 128.0
-                    else:
-                        x2[j, :, :, :, :] = (img[:, :, :, :] - 128.0) / 128.0
-                except:
-                    print 'read image error occured', dataset[rnd]
-            #print "load image done"
+            x2 = loader.get_batch()
 
             # train generator
             z = Variable(xp.random.uniform(-1, 1, (batchsize, nz), dtype=np.float32))

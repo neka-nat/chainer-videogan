@@ -87,7 +87,7 @@ if __name__ == "__main__":
         o.write(g.dump())
 
     dc_model = Discriminator()
-    x = chainer.Variable(np.zeros((1, 3, 64, 64, 64), dtype=np.float32))
+    x = chainer.Variable(np.zeros((1, 3, 32, 64, 64), dtype=np.float32))
     g = c.build_computational_graph(dc_model(x))
     with open('dc_network.dot', 'w') as o:
         o.write(g.dump())
