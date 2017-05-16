@@ -19,7 +19,7 @@ class DataLoader(object):
         if self._cursor + self._batch_size > len(self._video_index):
             self._cursor = 0
             np.random.shuffle(self._video_index)
-        out = np.zeros((self._batch_size, self._frame_size, 3, self._crop_size, self._crop_size))
+        out = np.zeros((self._batch_size, self._frame_size, 3, self._crop_size, self._crop_size), dtype=np.float32)
         for idx in xrange(self._batch_size):
             video_path = os.path.join(self._root_path, self._video_index[self._cursor])
             self._cursor += 1

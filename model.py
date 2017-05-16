@@ -75,7 +75,7 @@ class Discriminator(chainer.Chain):
         h = F.leaky_relu(self.bn0(self.cn1(h), test=test), 0.2)
         h = F.leaky_relu(self.bn1(self.cn2(h), test=test), 0.2)
         h = F.leaky_relu(self.bn2(self.cn3(h), test=test), 0.2)
-        return self.cn4(h)
+        return F.reshape(self.cn4(h), (-1, 2))
 
 if __name__ == "__main__":
     import chainer.computational_graph as c

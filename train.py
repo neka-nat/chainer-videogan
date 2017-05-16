@@ -1,9 +1,14 @@
 from __future__ import print_function
+import os
 import argparse
 import chainer
+from chainer import Variable
 from chainer import optimizers
+from chainer import serializers
 from chainer import cuda
+from chainer import functions as F
 import numpy as np
+import pylab
 from model import Generator, Discriminator
 from utils import DataLoader
 
@@ -12,7 +17,7 @@ parser.add_argument('--data_dir', '-d', type=str, default='.', help='Data direct
 args = parser.parse_args()
 
 nz = 100 # of dim for Z
-batchsize = 64
+batchsize = 8
 n_epoch = 10000
 n_train = 200000
 save_interval = 50000
@@ -79,15 +84,15 @@ def train(gen, dis, epoch0=0):
                 z = Variable(z)
                 x = gen(z, test=True)
                 x = x.data.get()
-                for f in range(frame_size):
+                for j in range(vissize):
                     pylab.rcParams['figure.figsize'] = (16.0, 16.0)
                     pylab.clf()
-                    for j in range(vissize):
-                        tmp = ((np.vectorize(clip_img)(x[j, f, :, :, :]) + 1) / 2).transpose(1, 2, 0)
-                        pylab.subplot(4, 4, j + 1)
+                    for f in range(frame_size):
+                        tmp = ((np.vectorize(clip_img)(x[j, :, f, :, :]) + 1) / 2).transpose(1,2,0)
+                        pylab.subplot(frame_size, 1, f + 1)
                         pylab.imshow(tmp)
                         pylab.axis('off')
-                    pylab.savefig('%s/vis_%d_%d_%d.png' % (result_dir, epoch, i, f))
+                    pylab.savefig('%s/vis_%d_%d.png' % (result_dir, epoch, j))
                 
                 serializers.save_hdf5("%s/model_dis_%d.h5" % (model_dir, epoch), dis)
                 serializers.save_hdf5("%s/model_gen_%d.h5" % (model_dir, epoch), gen)
@@ -99,5 +104,11 @@ gen = Generator()
 dis = Discriminator()
 gen.to_gpu()
 dis.to_gpu()
+
+try:
+    os.mkdir(result_dir)
+    os.mkdir(model_dir)
+except:
+    pass
 
 train(gen, dis)
