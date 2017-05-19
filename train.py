@@ -13,14 +13,14 @@ from model import Generator, Discriminator
 from utils import DataLoader
 
 parser = argparse.ArgumentParser(description='Train video-gan.')
-parser.add_argument('--data_dir', '-d', type=str, default='.', help='Data directory.')
+parser.add_argument('--data_dir', '-d', type=str, default='./data', help='Data directory.')
 args = parser.parse_args()
 
 nz = 100 # of dim for Z
 batchsize = 8
-n_epoch = 10000
-n_train = 200000
-save_interval = 50000
+n_epoch = 100
+n_train = 50000
+save_interval = 10000
 result_dir = './result'
 model_dir = './model'
 frame_size = 32
@@ -92,7 +92,7 @@ def train(gen, dis, epoch0=0):
                         pylab.subplot(frame_size, 1, f + 1)
                         pylab.imshow(tmp)
                         pylab.axis('off')
-                    pylab.savefig('%s/vis_%d_%d.png' % (result_dir, epoch, j))
+                    pylab.savefig('%s/vis_%d_%d_%d.png' % (result_dir, epoch, i, j))
                 
                 serializers.save_hdf5("%s/model_dis_%d.h5" % (model_dir, epoch), dis)
                 serializers.save_hdf5("%s/model_gen_%d.h5" % (model_dir, epoch), gen)
