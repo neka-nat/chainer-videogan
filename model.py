@@ -56,6 +56,27 @@ class Generator(chainer.Chain):
         gb = F.tile(gb, (1, 1, 32, 1, 1))
         return mask * gf + (1 - mask) * gb
 
+class Encoder(chainer.Chain):
+    def __init__(self):
+        super(Encoder, self).__init__(
+            bn0 = L.BatchNormalization(128, eps=1e-3),
+            bn1 = L.BatchNormalization(256, eps=1e-3),
+            bn2 = L.BatchNormalization(512, eps=1e-3),
+            bn3 = L.BatchNormalization(64, eps=1e-3),
+            cn0 = L.Convolution2D(3, 64, (4,4), stride=(2,2), pad=(1,1)),
+            cn1 = L.Convolution2D(64, 128, (4,4), stride=(2,2), pad=(1,1)),
+            cn2 = L.Convolution2D(128, 256, (4,4), stride=(2,2), pad=(1,1)),
+            cn3 = L.Convolution2D(256, 512, (4,4), stride=(2,2), pad=(1,1)),
+            cn4 = L.Convolution2D(512, 100, (4,4), stride=(1,1), pad=(0,0)),
+        )
+
+    def __call__(self, x, test=False):
+        h = F.leaky_relu(self.cn0(x), 0.2)
+        h = F.leaky_relu(self.bn0(self.cn1(h), test=test), 0.2)
+        h = F.leaky_relu(self.bn1(self.cn2(h), test=test), 0.2)
+        h = F.leaky_relu(self.bn2(self.cn3(h), test=test), 0.2)
+        return F.reshape(self.cn4(h), (-1, 100))
+
 class Discriminator(chainer.Chain):
     def __init__(self):
         super(Discriminator, self).__init__(
@@ -86,8 +107,14 @@ if __name__ == "__main__":
     with open('gen_network.dot', 'w') as o:
         o.write(g.dump())
 
+    enc_model = Encoder()
+    x0 = chainer.Variable(np.zeros((1, 3, 64, 64), dtype=np.float32))
+    e = c.build_computational_graph(enc_model(x0))
+    with open('encoder_network.dot', 'w') as o:
+        o.write(e.dump())
+
     dc_model = Discriminator()
     x = chainer.Variable(np.zeros((1, 3, 32, 64, 64), dtype=np.float32))
-    g = c.build_computational_graph(dc_model(x))
+    d = c.build_computational_graph(dc_model(x))
     with open('dc_network.dot', 'w') as o:
-        o.write(g.dump())
+        o.write(d.dump())
