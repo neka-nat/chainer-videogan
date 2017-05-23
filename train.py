@@ -8,7 +8,7 @@ from chainer import serializers
 from chainer import cuda
 from chainer import functions as F
 import numpy as np
-import pylab
+from PIL import Image
 from model import Generator, Discriminator
 from utils import DataLoader
 
@@ -85,14 +85,10 @@ def train(gen, dis, epoch0=0):
                 x = gen(z, test=True)
                 x = x.data.get()
                 for j in range(vissize):
-                    pylab.rcParams['figure.figsize'] = (16.0, 16.0)
-                    pylab.clf()
-                    for f in range(frame_size):
-                        tmp = ((np.vectorize(clip_img)(x[j, :, f, :, :]) + 1) / 2).transpose(1,2,0)
-                        pylab.subplot(frame_size, 1, f + 1)
-                        pylab.imshow(tmp)
-                        pylab.axis('off')
-                    pylab.savefig('%s/vis_%d_%d_%d.png' % (result_dir, epoch, i, j))
+                    tmp = ((np.vectorize(clip_img)(x[j, :, :, :, :]) + 1) / 2).transpose(1, 2, 3, 0)
+                    tmp = np.concatenate(tmp)
+                    img = Image.fromarray(np.uint8(tmp * 255.0))
+                    img.save('%s/vis_%d_%d_%d.png' % (result_dir, epoch, i, j))
                 
                 serializers.save_hdf5("%s/model_dis_%d.h5" % (model_dir, epoch), dis)
                 serializers.save_hdf5("%s/model_gen_%d.h5" % (model_dir, epoch), gen)
