@@ -8,7 +8,7 @@ from chainer import serializers
 from chainer import cuda
 from chainer import functions as F
 import numpy as np
-from PIL import Image
+import cv2
 from model import Generator, Discriminator, Predictor
 from utils import DataLoader
 
@@ -101,12 +101,10 @@ def train(gen, dis, epoch0=0, predict_model=False):
                 for j in range(z.shape[0]):
                     if predict_model:
                         in_img = ((xtest[j, :, 0, :, :] + 1) / 2).transpose(1, 2, 0)
-                        img = Image.fromarray(np.uint8(in_img * 255.0))
-                        img.save('%s/initial_%d_%d_%d.png' % (result_dir, epoch, i, j))
+                        cv2.imwrite('%s/initial_%d_%d_%d.png' % (result_dir, epoch, i, j), in_img * 255.0)
                     tmp = ((np.vectorize(clip_img)(x[j, :, :, :, :]) + 1) / 2).transpose(1, 2, 3, 0)
                     tmp = np.concatenate(tmp)
-                    img = Image.fromarray(np.uint8(tmp * 255.0))
-                    img.save('%s/vis_%d_%d_%d.png' % (result_dir, epoch, i, j))
+                    cv2.imwrite('%s/vis_%d_%d_%d.png' % (result_dir, epoch, i, j), tmp * 255.0)
                 
                 serializers.save_hdf5("%s/model_dis_%d.h5" % (model_dir, epoch), dis)
                 serializers.save_hdf5("%s/model_gen_%d.h5" % (model_dir, epoch), gen)
