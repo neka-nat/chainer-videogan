@@ -9,11 +9,12 @@ from chainer import cuda
 from chainer import functions as F
 import numpy as np
 from PIL import Image
-from model import Generator, Discriminator
+from model import Generator, Discriminator, Predictor
 from utils import DataLoader
 
 parser = argparse.ArgumentParser(description='Train video-gan.')
 parser.add_argument('--data_dir', '-d', type=str, default='./data', help='Data directory.')
+parser.add_argument('--predict_model', '-p', action='store_true', default=False, help='Prediction model.')
 args = parser.parse_args()
 
 nz = 100 # of dim for Z
@@ -31,7 +32,7 @@ loader = DataLoader(args.data_dir, batchsize)
 def clip_img(x):
     return np.float32(max(min(1, x), -1))
 
-def train(gen, dis, epoch0=0):
+def train(gen, dis, epoch0=0, predict_model=False):
     o_gen = optimizers.Adam(alpha=0.0002, beta1=0.5)
     o_dis = optimizers.Adam(alpha=0.0002, beta1=0.5)
     o_gen.setup(gen)
@@ -39,6 +40,7 @@ def train(gen, dis, epoch0=0):
     o_gen.add_hook(chainer.optimizer.WeightDecay(0.00001))
     o_dis.add_hook(chainer.optimizer.WeightDecay(0.00001))
 
+    lmd = 0.01
     vissize = 16
     zvis = (xp.random.uniform(-1, 1, (vissize, nz), dtype=np.float32))
     
@@ -46,6 +48,7 @@ def train(gen, dis, epoch0=0):
         perm = np.random.permutation(n_train)
         sum_l_dis = np.float32(0)
         sum_l_gen = np.float32(0)
+        sum_mse = np.float32(0)
         
         for i in xrange(0, n_train, batchsize):
             # discriminator
@@ -56,10 +59,17 @@ def train(gen, dis, epoch0=0):
             x2 = loader.get_batch()
 
             # train generator
-            z = Variable(xp.random.uniform(-1, 1, (batchsize, nz), dtype=np.float32))
+            if predict_model:
+                z = Variable(cuda.to_gpu(x2[:, :, 0, :, :]))
+            else:
+                z = Variable(xp.random.uniform(-1, 1, (batchsize, nz), dtype=np.float32))
             x = gen(z)
             yl = dis(x)
             L_gen = F.softmax_cross_entropy(yl, Variable(xp.zeros(batchsize, dtype=np.int32)))
+            if predict_model:
+                mse = F.mean_squared_error(x[:, :, 0, :, :], z)
+                L_gen += lmd * mse
+                sum_mse += mse.data.get()
             L_dis = F.softmax_cross_entropy(yl, Variable(xp.ones(batchsize, dtype=np.int32)))
 
             # train discriminator
@@ -79,12 +89,20 @@ def train(gen, dis, epoch0=0):
             sum_l_dis += L_dis.data.get()
 
             if i % save_interval==0:
-                z = zvis
-                z[8:, :] = (xp.random.uniform(-1, 1, (8, nz), dtype=np.float32))
+                if predict_model:
+                    xtest = loader.get_batch()
+                    z = cuda.to_gpu(xtest[:, :, 0, :, :])
+                else:
+                    z = zvis
+                    z[8:, :] = (xp.random.uniform(-1, 1, (8, nz), dtype=np.float32))
                 z = Variable(z)
                 x = gen(z, test=True)
                 x = x.data.get()
-                for j in range(vissize):
+                for j in range(z.shape[0]):
+                    if predict_model:
+                        in_img = ((xtest[j, :, 0, :, :] + 1) / 2).transpose(1, 2, 0)
+                        img = Image.fromarray(np.uint8(in_img * 255.0))
+                        img.save('%s/initial_%d_%d_%d.png' % (result_dir, epoch, i, j))
                     tmp = ((np.vectorize(clip_img)(x[j, :, :, :, :]) + 1) / 2).transpose(1, 2, 3, 0)
                     tmp = np.concatenate(tmp)
                     img = Image.fromarray(np.uint8(tmp * 255.0))
@@ -94,9 +112,12 @@ def train(gen, dis, epoch0=0):
                 serializers.save_hdf5("%s/model_gen_%d.h5" % (model_dir, epoch), gen)
                 serializers.save_hdf5("%s/state_dis_%d.h5" % (model_dir, epoch), o_dis)
                 serializers.save_hdf5("%s/state_gen_%d.h5" % (model_dir, epoch), o_gen)
-        print('epoch end', epoch, sum_l_gen/n_train, sum_l_dis/n_train)
+        print('epoch end', epoch, sum_l_gen/n_train, sum_l_dis/n_train, sum_mse/n_train)
 
-gen = Generator()
+if args.predict_model:
+    gen = Predictor()
+else:
+    gen = Generator()
 dis = Discriminator()
 gen.to_gpu()
 dis.to_gpu()
@@ -107,4 +128,4 @@ try:
 except:
     pass
 
-train(gen, dis)
+train(gen, dis, predict_model=args.predict_model)

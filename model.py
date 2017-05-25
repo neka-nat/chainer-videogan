@@ -77,6 +77,16 @@ class Encoder(chainer.Chain):
         h = F.leaky_relu(self.bn2(self.cn3(h), test=test), 0.2)
         return F.reshape(self.cn4(h), (-1, 100))
 
+class Predictor(chainer.Chain):
+    def __init__(self):
+        super(Predictor, self).__init__(
+            enc = Encoder(),
+            gen = Generator(),
+        )
+    def __call__(self, x, test=False):
+        z = self.enc(x, test)
+        return self.gen(z, test)
+
 class Discriminator(chainer.Chain):
     def __init__(self):
         super(Discriminator, self).__init__(

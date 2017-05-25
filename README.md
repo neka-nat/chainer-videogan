@@ -11,4 +11,6 @@ Please download [here](http://data.csail.mit.edu/videogan/golf.tar.bz2) and extr
 Training
 ---------
 
-  $ python train.py
+```
+python train.py
+```
