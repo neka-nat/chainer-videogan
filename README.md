@@ -8,6 +8,12 @@ Data
 
 Please download [here](http://data.csail.mit.edu/videogan/golf.tar.bz2) and extract in "data" directory.
 
+```
+cd data
+wget http://data.csail.mit.edu/videogan/golf.tar.bz
+tar xvf golf.tar.bz2
+```
+
 Training
 ---------
 
