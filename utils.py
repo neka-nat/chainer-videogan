@@ -36,3 +36,34 @@ class DataLoader(object):
         out = np.transpose(out, (0, 2, 1, 3, 4))
         out = (out - 128.0) / 128.0
         return out
+
+class VideoLoader(object):
+    def __init__(self, root_path, batch_size=64):
+        self._batch_size = batch_size
+        self._frame_size = 32
+        self._crop_size = 64
+        with open(os.path.join(root_path, 'train_list.txt'), 'r') as f:
+            self._data = []
+            for filename in f.readlines():
+                vdata = []
+                filename = filename.strip()
+                vidcap = cv2.VideoCapture(os.path.join(root_path, filename))
+                while True:
+                    success, image = vidcap.read()
+                    if not success:
+                        break
+                    vdata.append(np.transpose(cv2.resize(image,
+                                                         (self._crop_size, self._crop_size)),
+                                              (2, 0, 1)))
+            self._data.append(np.array(vdata, dtype=np.float32))
+
+    def get_batch(self):
+        out = np.zeros((self._batch_size, self._frame_size, 3, self._crop_size, self._crop_size), dtype=np.float32)
+        for idx in xrange(self._batch_size):
+            vid = np.random.randint(0, len(self._data))
+            start_idx = np.random.randint(0, len(self._data[vid]) - self._frame_size)
+            for j in xrange(self._frame_size):
+                out[idx, j, :, :, :] = self._data[vid][start_idx + j, :, :, :]
+        out = np.transpose(out, (0, 2, 1, 3, 4))
+        return out
+

@@ -10,24 +10,29 @@ from chainer import functions as F
 import numpy as np
 import cv2
 from model import Generator, Discriminator, Predictor
-from utils import DataLoader
+from utils import DataLoader, VideoLoader
 
 parser = argparse.ArgumentParser(description='Train video-gan.')
 parser.add_argument('--data_dir', '-d', type=str, default='./data', help='Data directory.')
+parser.add_argument('--gpu_no', '-g', type=int, default=0, help='GPU device no.')
 parser.add_argument('--predict_model', '-p', action='store_true', default=False, help='Prediction model.')
+parser.add_argument('--video_data', '-v', action='store_true', default=False, help='Use video data.')
 args = parser.parse_args()
 
 nz = 100 # of dim for Z
 batchsize = 8
 n_epoch = 100
-n_train = 50000
-save_interval = 10000
+n_train = 100000
+save_interval = 20000
 result_dir = './result'
 model_dir = './model'
 frame_size = 32
 xp = cuda.cupy
-cuda.get_device(0).use()
-loader = DataLoader(args.data_dir, batchsize)
+cuda.get_device(args.gpu_no).use()
+if args.video_data:
+    loader = VideoLoader(args.data_dir, batchsize)
+else:
+    loader = DataLoader(args.data_dir, batchsize)
 
 def clip_img(x):
     return np.float32(max(min(1, x), -1))
