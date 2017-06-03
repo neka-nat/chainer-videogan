@@ -17,13 +17,18 @@ parser.add_argument('--data_dir', '-d', type=str, default='./data', help='Data d
 parser.add_argument('--gpu_no', '-g', type=int, default=0, help='GPU device no.')
 parser.add_argument('--predict_model', '-p', action='store_true', default=False, help='Prediction model.')
 parser.add_argument('--video_data', '-v', action='store_true', default=False, help='Use video data.')
+parser.add_argument('--batch_size', '-b', type=int, default=8, help='Batch size.')
+parser.add_argument('--zspace', '-z', type=int, default=100, help='Number of latent space dimension.')
+parser.add_argument('--num_epoch', '-e', type=int, default=100, help='Number of epoch.')
+parser.add_argument('--num_train', '-t', type=int, default=100000, help='Number of trainig data.')
+parser.add_argument('--save_interval', '-s', type=int, default=20000, help='Interval of saving the result and model weight.')
 args = parser.parse_args()
 
-nz = 100 # of dim for Z
-batchsize = 8
-n_epoch = 100
-n_train = 100000
-save_interval = 20000
+nz = args.zspace # of dim for Z
+batchsize = args.batch_size
+n_epoch = args.num_epoch
+n_train = args.num_train
+save_interval = args.save_interval
 result_dir = './result'
 model_dir = './model'
 frame_size = 32
