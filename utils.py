@@ -55,7 +55,8 @@ class VideoLoader(object):
                     vdata.append(np.transpose(cv2.resize(image,
                                                          (self._crop_size, self._crop_size)),
                                               (2, 0, 1)))
-            self._data.append(np.array(vdata, dtype=np.float32))
+                self._data.append(np.array(vdata, dtype=np.float32))
+            print("Load %d videos" % len(self._data))
 
     def get_batch(self):
         out = np.zeros((self._batch_size, self._frame_size, 3, self._crop_size, self._crop_size), dtype=np.float32)
@@ -68,3 +69,8 @@ class VideoLoader(object):
         out = (out - 128.0) / 128.0
         return out
 
+if __name__ == "__main__":
+    loader = VideoLoader("data/")
+    print len(loader._data)
+    for d in loader._data:
+        print d.shape
