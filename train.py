@@ -35,8 +35,10 @@ frame_size = 32
 xp = cuda.cupy
 cuda.get_device(args.gpu_no).use()
 if args.video_data:
+    print("Use Video Loader")
     loader = VideoLoader(args.data_dir, batchsize)
 else:
+    print("Use Data Loader")
     loader = DataLoader(args.data_dir, batchsize)
 
 def clip_img(x):
@@ -123,8 +125,10 @@ def train(gen, dis, epoch0=0, predict_model=False):
         print('epoch end', epoch, sum_l_gen/n_train, sum_l_dis/n_train, sum_mse/n_train)
 
 if args.predict_model:
+    print("Use Predict Model")
     gen = Predictor()
 else:
+    print("Use Generator Model")
     gen = Generator()
 dis = Discriminator()
 gen.to_gpu()

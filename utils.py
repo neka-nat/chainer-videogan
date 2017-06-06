@@ -65,5 +65,6 @@ class VideoLoader(object):
             for j in xrange(self._frame_size):
                 out[idx, j, :, :, :] = self._data[vid][start_idx + j, :, :, :]
         out = np.transpose(out, (0, 2, 1, 3, 4))
+        out = (out - 128.0) / 128.0
         return out
 
