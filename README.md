@@ -2,7 +2,7 @@
 
 A chainer version of [Generating Videos with Scene Dynamics](http://web.mit.edu/vondrick/tinyvideo/)
 
-## Use the original data
+## 1. Use the original data
 
 ### Data
 
@@ -20,7 +20,7 @@ tar xvf golf.tar.bz2
 python train.py
 ```
 
-## Use youtube video
+## 2. Use youtube video
 
 ### Data
 
@@ -38,3 +38,8 @@ The videos are saved in "data" directory.
 ```
 python train.py -v
 ```
+
+### Result
+
+| <img src="images/out0.gif" width="100px"> | <img src="images/out1.gif" width="100px"> |
+| <img src="images/out2.gif" width="100px"> | <img src="images/out3.gif" width="100px"> |
