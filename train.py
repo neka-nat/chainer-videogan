@@ -22,6 +22,7 @@ parser.add_argument('--zspace', '-z', type=int, default=100, help='Number of lat
 parser.add_argument('--num_epoch', '-e', type=int, default=100, help='Number of epoch.')
 parser.add_argument('--num_train', '-t', type=int, default=100000, help='Number of trainig data.')
 parser.add_argument('--save_interval', '-s', type=int, default=20000, help='Interval of saving the result and model weight.')
+parser.add_argument('--initmodel_no', '-i', type=int, default=-1, help='Initialize the model No.')
 args = parser.parse_args()
 
 nz = args.zspace # of dim for Z
@@ -131,6 +132,10 @@ else:
     print("Use Generator Model")
     gen = Generator()
 dis = Discriminator()
+if args.initmodel_no > 0:
+    print('Load model from', args.initmodel_no)
+    serializers.load_hdf5("%s/model_gen_%d.h5" % (model_dir, args.initmodel_no), gen)
+    serializers.load_hdf5("%s/model_dis_%d.h5" % (model_dir, args.initmodel_no), dis)
 gen.to_gpu()
 dis.to_gpu()
 
