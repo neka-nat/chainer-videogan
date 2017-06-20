@@ -2,6 +2,10 @@
 
 A chainer version of [Generating Videos with Scene Dynamics](http://web.mit.edu/vondrick/tinyvideo/)
 
+The network of Generator is as follows.
+
+![network](images/network.png)
+
 ## 1. Use the original data
 
 ### Data
