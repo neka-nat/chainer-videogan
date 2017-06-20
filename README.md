@@ -41,5 +41,5 @@ python train.py -v
 
 ### Result
 
-| <img src="images/out0.gif" width="100px"> | <img src="images/out1.gif" width="100px"> |
-| <img src="images/out2.gif" width="100px"> | <img src="images/out3.gif" width="100px"> |
+<img src="images/out0.gif" width="100px"> <img src="images/out1.gif" width="100px">
+<img src="images/out2.gif" width="100px"> <img src="images/out3.gif" width="100px">
