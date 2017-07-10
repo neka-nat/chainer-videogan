@@ -28,30 +28,30 @@ class Generator(chainer.Chain):
             dnm = L.DeconvolutionND(3, 64, 1, (4,4,4), stride=(2,2,2), pad=(1,1,1)),
         )
 
-    def background(self, z, test=False):
+    def background(self, z):
         zin = F.reshape(z, (-1, 100, 1, 1))
-        h = F.relu(self.bn0b(self.dn0b(zin), test=test))
-        h = F.relu(self.bn1b(self.dn1b(h), test=test))
-        h = F.relu(self.bn2b(self.dn2b(h), test=test))
-        h = F.relu(self.bn3b(self.dn3b(h), test=test))
+        h = F.relu(self.bn0b(self.dn0b(zin)))
+        h = F.relu(self.bn1b(self.dn1b(h)))
+        h = F.relu(self.bn2b(self.dn2b(h)))
+        h = F.relu(self.bn3b(self.dn3b(h)))
         x = F.tanh(self.dn4b(h))
         return x
 
-    def foreground(self, z, test=False):
+    def foreground(self, z):
         zin = F.reshape(z, (-1, 100, 1, 1, 1))
-        h = F.relu(self.bn0f(self.dn0f(zin), test=test))
-        h = F.relu(self.bn1f(self.dn1f(h), test=test))
-        h = F.relu(self.bn2f(self.dn2f(h), test=test))
-        h = F.relu(self.bn3f(self.dn3f(h), test=test))
+        h = F.relu(self.bn0f(self.dn0f(zin)))
+        h = F.relu(self.bn1f(self.dn1f(h)))
+        h = F.relu(self.bn2f(self.dn2f(h)))
+        h = F.relu(self.bn3f(self.dn3f(h)))
         mask = self.dnm(h)
         mask = F.sigmoid(mask)
         x = F.tanh(self.dn4f(h))
         return x, mask
 
-    def __call__(self, z, test=False):
-        gf, mask = self.foreground(z, test)
+    def __call__(self, z):
+        gf, mask = self.foreground(z)
         mask = F.tile(mask, (1, 3, 1, 1, 1))
-        gb = self.background(z, test)
+        gb = self.background(z)
         gb = F.expand_dims(gb, 2)
         gb = F.tile(gb, (1, 1, 32, 1, 1))
         return mask * gf + (1 - mask) * gb
@@ -69,11 +69,11 @@ class Encoder(chainer.Chain):
             cn4 = L.Convolution2D(512, 100, (4,4), stride=(1,1), pad=(0,0)),
         )
 
-    def __call__(self, x, test=False):
+    def __call__(self, x):
         h = F.leaky_relu(self.cn0(x), 0.2)
-        h = F.leaky_relu(self.bn0(self.cn1(h), test=test), 0.2)
-        h = F.leaky_relu(self.bn1(self.cn2(h), test=test), 0.2)
-        h = F.leaky_relu(self.bn2(self.cn3(h), test=test), 0.2)
+        h = F.leaky_relu(self.bn0(self.cn1(h)), 0.2)
+        h = F.leaky_relu(self.bn1(self.cn2(h)), 0.2)
+        h = F.leaky_relu(self.bn2(self.cn3(h)), 0.2)
         return F.reshape(self.cn4(h), (-1, 100))
 
 class Predictor(chainer.Chain):
@@ -82,9 +82,9 @@ class Predictor(chainer.Chain):
             enc = Encoder(),
             gen = Generator(),
         )
-    def __call__(self, x, test=False):
-        z = self.enc(x, test)
-        return self.gen(z, test)
+    def __call__(self, x):
+        z = self.enc(x)
+        return self.gen(z)
 
 class Discriminator(chainer.Chain):
     def __init__(self):
@@ -99,11 +99,11 @@ class Discriminator(chainer.Chain):
             cn4 = L.ConvolutionND(3, 512, 2, (2,4,4), stride=(1,1,1), pad=(0,0,0)),
         )
 
-    def __call__(self, x, test=False):
+    def __call__(self, x):
         h = F.leaky_relu(self.cn0(x), 0.2)
-        h = F.leaky_relu(self.bn0(self.cn1(h), test=test), 0.2)
-        h = F.leaky_relu(self.bn1(self.cn2(h), test=test), 0.2)
-        h = F.leaky_relu(self.bn2(self.cn3(h), test=test), 0.2)
+        h = F.leaky_relu(self.bn0(self.cn1(h)), 0.2)
+        h = F.leaky_relu(self.bn1(self.cn2(h)), 0.2)
+        h = F.leaky_relu(self.bn2(self.cn3(h)), 0.2)
         return F.reshape(self.cn4(h), (-1, 2))
 
 if __name__ == "__main__":

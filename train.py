@@ -90,11 +90,11 @@ def train(gen, dis, epoch0=0, predict_model=False):
             yl2 = dis(x2)
             L_dis += F.softmax_cross_entropy(yl2, Variable(xp.zeros(batchsize, dtype=np.int32)))
 
-            o_gen.zero_grads()
+            gen.zerograds()
             L_gen.backward()
             o_gen.update()
 
-            o_dis.zero_grads()
+            dis.zerograds()
             L_dis.backward()
             o_dis.update()
 
@@ -102,27 +102,28 @@ def train(gen, dis, epoch0=0, predict_model=False):
             sum_l_dis += L_dis.data.get()
 
             if i % save_interval==0:
-                if predict_model:
-                    xtest = loader.get_batch()
-                    z = cuda.to_gpu(xtest[:, :, 0, :, :])
-                else:
-                    z = zvis
-                    z[8:, :] = (xp.random.uniform(-1, 1, (8, nz), dtype=np.float32))
-                z = Variable(z)
-                x = gen(z, test=True)
-                x = x.data.get()
-                for j in range(z.shape[0]):
+                with chainer.using_config('train', False):
                     if predict_model:
-                        in_img = ((xtest[j, :, 0, :, :] + 1) / 2).transpose(1, 2, 0)
-                        cv2.imwrite('%s/initial_%d_%d_%d.png' % (result_dir, epoch, i, j), in_img * 255.0)
-                    tmp = ((np.vectorize(clip_img)(x[j, :, :, :, :]) + 1) / 2).transpose(1, 2, 3, 0)
-                    tmp = np.concatenate(tmp)
-                    cv2.imwrite('%s/vis_%d_%d_%d.png' % (result_dir, epoch, i, j), tmp * 255.0)
-                
-                serializers.save_hdf5("%s/model_dis_%d.h5" % (model_dir, epoch), dis)
-                serializers.save_hdf5("%s/model_gen_%d.h5" % (model_dir, epoch), gen)
-                serializers.save_hdf5("%s/state_dis_%d.h5" % (model_dir, epoch), o_dis)
-                serializers.save_hdf5("%s/state_gen_%d.h5" % (model_dir, epoch), o_gen)
+                        xtest = loader.get_batch()
+                        z = cuda.to_gpu(xtest[:, :, 0, :, :])
+                    else:
+                        z = zvis
+                        z[8:, :] = (xp.random.uniform(-1, 1, (8, nz), dtype=np.float32))
+                    z = Variable(z)
+                    x = gen(z)
+                    x = x.data.get()
+                    for j in range(z.shape[0]):
+                        if predict_model:
+                            in_img = ((xtest[j, :, 0, :, :] + 1) / 2).transpose(1, 2, 0)
+                            cv2.imwrite('%s/initial_%d_%d_%d.png' % (result_dir, epoch, i, j), in_img * 255.0)
+                        tmp = ((np.vectorize(clip_img)(x[j, :, :, :, :]) + 1) / 2).transpose(1, 2, 3, 0)
+                        tmp = np.concatenate(tmp)
+                        cv2.imwrite('%s/vis_%d_%d_%d.png' % (result_dir, epoch, i, j), tmp * 255.0)
+
+                    serializers.save_hdf5("%s/model_dis_%d.h5" % (model_dir, epoch), dis)
+                    serializers.save_hdf5("%s/model_gen_%d.h5" % (model_dir, epoch), gen)
+                    serializers.save_hdf5("%s/state_dis_%d.h5" % (model_dir, epoch), o_dis)
+                    serializers.save_hdf5("%s/state_gen_%d.h5" % (model_dir, epoch), o_gen)
         print('epoch end', epoch, sum_l_gen/n_train, sum_l_dis/n_train, sum_mse/n_train)
 
 if args.predict_model:
