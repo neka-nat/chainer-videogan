@@ -16,14 +16,19 @@ from pytube import YouTube
 
 # Gravure idol
 video_list = ["https://www.youtube.com/watch?v=m8fMUiQ2m08",
-              "https://www.youtube.com/watch?v=YX-rm9cvdzc",
               "https://www.youtube.com/watch?v=49jAY9dGhiw",
               "https://www.youtube.com/watch?v=ayGdHp7v0oM",
               "https://www.youtube.com/watch?v=AKRkZB6jKqQ",
               "https://www.youtube.com/watch?v=Ku8NFXEqG74",
               "https://www.youtube.com/watch?v=COQRU0bb6-c",
-              "https://www.youtube.com/watch?v=1Wjjk5tLzWU",
-              "https://www.youtube.com/watch?v=1ZawgNhvZzY"]
+              "https://www.youtube.com/watch?v=1ZawgNhvZzY",
+              "https://www.youtube.com/watch?v=iMYaSiFpp0M",
+              "https://www.youtube.com/watch?v=W-vorRyy9Ho",
+              "https://www.youtube.com/watch?v=9Lk4yGmAHZI",
+              "https://www.youtube.com/watch?v=ZF1hJre7_eI",
+              "https://www.youtube.com/watch?v=iv4t6KJlw4o",
+              "https://www.youtube.com/watch?v=TQqqUF33dUg",
+              "https://www.youtube.com/watch?v=3EpWzMVAUd8"]
 
 files = []
 for idx, vd in enumerate(video_list):
