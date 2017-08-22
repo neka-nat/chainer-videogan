@@ -145,4 +145,4 @@ try:
 except:
     pass
 
-train(gen, dis, predict_model=args.predict_model)
+train(gen, dis, epoch0=max(0, args.initmodel_no+1), predict_model=args.predict_model)
