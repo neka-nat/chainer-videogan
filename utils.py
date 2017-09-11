@@ -70,7 +70,11 @@ class VideoLoader(object):
         return out
 
 if __name__ == "__main__":
-    loader = VideoLoader("data/")
+    def clip_img(x):
+        return np.float32(max(min(1, x), -1))
+    loader = VideoLoader("data/", 1)
     print len(loader._data)
-    for d in loader._data:
-        print d.shape
+    for i in range(10):
+        tmp = ((np.vectorize(clip_img)(loader.get_batch()[0, :, :, :, :]) + 1) / 2).transpose(1, 2, 3, 0)
+        tmp = np.concatenate(tmp)
+        cv2.imwrite('vis_%d.png' % i, tmp * 255.0)
