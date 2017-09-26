@@ -45,5 +45,22 @@ python train.py -v
 
 ### Result
 
-<img src="images/out0.gif" width="100px"> <img src="images/out1.gif" width="100px">
-<img src="images/out2.gif" width="100px"> <img src="images/out3.gif" width="100px">
+300 epoch results
+
+<table>
+<tr>
+<td><img src="images/out0.gif" width="150px"></td>
+<td><img src="images/out1.gif" width="150px"></td>
+<td><img src="images/out2.gif" width="150px"></td>
+</tr>
+<tr>
+<td><img src="images/out3.gif" width="150px"></td>
+<td><img src="images/out4.gif" width="150px"></td>
+<td><img src="images/out5.gif" width="150px"></td>
+</tr>
+<tr>
+<td><img src="images/out6.gif" width="150px"></td>
+<td><img src="images/out7.gif" width="150px"></td>
+<td><img src="images/out8.gif" width="150px"></td>
+</tr>
+</table>
