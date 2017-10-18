@@ -1,23 +1,27 @@
 from __future__ import print_function
 import os
+import fnmatch
 import argparse
+from datetime import datetime
 import chainer
 from chainer import Variable
 from chainer import optimizers
 from chainer import serializers
 from chainer import cuda
 from chainer import functions as F
+import chainer.computational_graph as c
 import numpy as np
 import cv2
 from model import Generator, Discriminator, Predictor
 from utils import DataLoader, VideoLoader
+from tb_chainer import utils, NodeName, SummaryWriter
 
 parser = argparse.ArgumentParser(description='Train video-gan.')
 parser.add_argument('--data_dir', '-d', type=str, default='./data', help='Data directory.')
 parser.add_argument('--gpu_no', '-g', type=int, default=0, help='GPU device no.')
 parser.add_argument('--predict_model', '-p', action='store_true', default=False, help='Prediction model.')
 parser.add_argument('--video_data', '-v', action='store_true', default=False, help='Use video data.')
-parser.add_argument('--batch_size', '-b', type=int, default=8, help='Batch size.')
+parser.add_argument('--batch_size', '-b', type=int, default=10, help='Batch size.')
 parser.add_argument('--zspace', '-z', type=int, default=100, help='Number of latent space dimension.')
 parser.add_argument('--num_epoch', '-e', type=int, default=100, help='Number of epoch.')
 parser.add_argument('--num_train', '-t', type=int, default=100000, help='Number of trainig data.')
@@ -46,6 +50,7 @@ def clip_img(x):
     return np.float32(max(min(1, x), -1))
 
 def train(gen, dis, epoch0=0, predict_model=False):
+    writer = SummaryWriter('runs/'+datetime.now().strftime('%B%d  %H:%M:%S'))
     o_gen = optimizers.Adam(alpha=0.0002, beta1=0.5)
     o_dis = optimizers.Adam(alpha=0.0002, beta1=0.5)
     o_gen.setup(gen)
@@ -111,6 +116,23 @@ def train(gen, dis, epoch0=0, predict_model=False):
                         z[8:, :] = (xp.random.uniform(-1, 1, (8, nz), dtype=np.float32))
                     z = Variable(z)
                     x = gen(z)
+                    g = c.build_computational_graph([x])
+                    names = NodeName(g.nodes)
+                    for n in g.nodes:
+                        if isinstance(n, chainer.variable.VariableNode) and \
+                           not isinstance(n._variable(), chainer.Parameter) and n.data is not None:
+                            if fnmatch.fnmatchcase(names.name(n), '*foreground*') or fnmatch.fnmatchcase(names.name(n), '*background*'):
+                                continue
+                            data_list = chainer.cuda.to_cpu(n.data)
+                            for nb, data in enumerate(data_list):
+                                if data.ndim == 4:
+                                    data = data.transpose(1, 0, 2, 3)
+                                    for idx, d in enumerate(data):
+                                        img = utils.make_grid(np.expand_dims(d, 1) if d.shape[0] != 3 else d[::-1, :, :])
+                                        writer.add_image(('batch_%d/' % nb) + names.name(n) + ('/%d' % idx), (img + 1) / 2, n_train * epoch + i)
+                                else:
+                                    img = utils.make_grid(np.expand_dims(data, 1))
+                                    writer.add_image(('batch_%d/' % nb) + names.name(n), (img + 1) / 2, n_train * epoch + i)
                     x = x.data.get()
                     for j in range(z.shape[0]):
                         if predict_model:
@@ -125,6 +147,15 @@ def train(gen, dis, epoch0=0, predict_model=False):
                     serializers.save_hdf5("%s/state_dis_%d.h5" % (model_dir, epoch), o_dis)
                     serializers.save_hdf5("%s/state_gen_%d.h5" % (model_dir, epoch), o_gen)
         print('epoch end', epoch, sum_l_gen/n_train, sum_l_dis/n_train, sum_mse/n_train)
+        writer.add_scalar('loss_gen', sum_l_gen/n_train, n_train * epoch)
+        writer.add_scalar('loss_dis', sum_l_dis/n_train, n_train * epoch)
+        writer.add_scalar('mse', sum_mse/n_train, n_train * epoch)
+        for name, param in gen.namedparams():
+            writer.add_histogram(name, chainer.cuda.to_cpu(param.data), n_train * epoch)
+        for name, param in dis.namedparams():
+            writer.add_histogram(name, chainer.cuda.to_cpu(param.data), n_train * epoch)
+    writer.add_graph([yl])
+    writer.close()
 
 if args.predict_model:
     print("Use Predict Model")

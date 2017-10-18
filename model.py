@@ -1,6 +1,9 @@
 import chainer
 import chainer.functions as F
 import chainer.links as L
+from tb_chainer import name_scope, within_name_scope
+
+_tol = lambda it: [x for x in it]
 
 class Generator(chainer.Chain):
     def __init__(self):
@@ -29,25 +32,40 @@ class Generator(chainer.Chain):
         )
 
     def background(self, z):
-        zin = F.reshape(z, (-1, 100, 1, 1))
-        h = F.relu(self.bn0b(self.dn0b(zin)))
-        h = F.relu(self.bn1b(self.dn1b(h)))
-        h = F.relu(self.bn2b(self.dn2b(h)))
-        h = F.relu(self.bn3b(self.dn3b(h)))
-        x = F.tanh(self.dn4b(h))
+        with name_scope("background",
+                        _tol(self.bn0b.params()) + _tol(self.bn1b.params()) + \
+                        _tol(self.bn2b.params()) + _tol(self.bn3b.params()) + \
+                        _tol(self.dn0b.params()) + _tol(self.dn1b.params()) + \
+                        _tol(self.dn2b.params()) + _tol(self.dn3b.params()) + \
+                        _tol(self.dn4b.params()),
+                        True):
+            zin = F.reshape(z, (-1, 100, 1, 1))
+            h = F.relu(self.bn0b(self.dn0b(zin)))
+            h = F.relu(self.bn1b(self.dn1b(h)))
+            h = F.relu(self.bn2b(self.dn2b(h)))
+            h = F.relu(self.bn3b(self.dn3b(h)))
+            x = F.tanh(self.dn4b(h))
         return x
 
     def foreground(self, z):
-        zin = F.reshape(z, (-1, 100, 1, 1, 1))
-        h = F.relu(self.bn0f(self.dn0f(zin)))
-        h = F.relu(self.bn1f(self.dn1f(h)))
-        h = F.relu(self.bn2f(self.dn2f(h)))
-        h = F.relu(self.bn3f(self.dn3f(h)))
-        mask = self.dnm(h)
-        mask = F.sigmoid(mask)
-        x = F.tanh(self.dn4f(h))
+        with name_scope("foreground",
+                        _tol(self.bn0f.params()) + _tol(self.bn1f.params()) + \
+                        _tol(self.bn2f.params()) + _tol(self.bn3f.params()) + \
+                        _tol(self.dn0f.params()) + _tol(self.dn1f.params()) + \
+                        _tol(self.dn2f.params()) + _tol(self.dn3f.params()) + \
+                        _tol(self.dn4f.params()),
+                        True):
+            zin = F.reshape(z, (-1, 100, 1, 1, 1))
+            h = F.relu(self.bn0f(self.dn0f(zin)))
+            h = F.relu(self.bn1f(self.dn1f(h)))
+            h = F.relu(self.bn2f(self.dn2f(h)))
+            h = F.relu(self.bn3f(self.dn3f(h)))
+            mask = self.dnm(h)
+            mask = F.sigmoid(mask)
+            x = F.tanh(self.dn4f(h))
         return x, mask
 
+    @within_name_scope("Generator", True)
     def __call__(self, z):
         gf, mask = self.foreground(z)
         mask = F.tile(mask, (1, 3, 1, 1, 1))
@@ -69,6 +87,7 @@ class Encoder(chainer.Chain):
             cn4 = L.Convolution2D(512, 100, (4,4), stride=(1,1), pad=(0,0)),
         )
 
+    @within_name_scope("Encoder", True)
     def __call__(self, x):
         h = F.leaky_relu(self.cn0(x), 0.2)
         h = F.leaky_relu(self.bn0(self.cn1(h)), 0.2)
@@ -99,6 +118,7 @@ class Discriminator(chainer.Chain):
             cn4 = L.ConvolutionND(3, 512, 2, (2,4,4), stride=(1,1,1), pad=(0,0,0)),
         )
 
+    @within_name_scope("Discriminator", True)
     def __call__(self, x):
         h = F.leaky_relu(self.cn0(x), 0.2)
         h = F.leaky_relu(self.bn0(self.cn1(h)), 0.2)
