@@ -1,6 +1,6 @@
 # chainer-videogan
 
-A chainer version of [Generating Videos with Scene Dynamics](http://web.mit.edu/vondrick/tinyvideo/)
+A chainer version of [Generating Videos with Scene Dynamics](https://www.cs.columbia.edu/~vondrick//tinyvideo/)
 
 The network of Generator is as follows.
 
