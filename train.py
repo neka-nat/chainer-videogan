@@ -57,13 +57,13 @@ def train(gen, dis, epoch0=0, predict_model=False):
     vissize = 16
     zvis = (xp.random.uniform(-1, 1, (vissize, nz), dtype=np.float32))
     
-    for epoch in xrange(epoch0, n_epoch):
+    for epoch in range(epoch0, n_epoch):
         perm = np.random.permutation(n_train)
         sum_l_dis = np.float32(0)
         sum_l_gen = np.float32(0)
         sum_mse = np.float32(0)
         
-        for i in xrange(0, n_train, batchsize):
+        for i in range(0, n_train, batchsize):
             # discriminator
             # 0: from dataset
             # 1: from noise

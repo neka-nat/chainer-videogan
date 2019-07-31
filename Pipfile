@@ -8,6 +8,7 @@ chainer = "*"
 "cupy-cuda100" = "*"
 pytube = "*"
 opencv-python = "*"
+"h5py" = "*"
 
 [dev-packages]
 

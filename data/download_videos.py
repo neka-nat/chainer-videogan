@@ -1,44 +1,19 @@
 from pytube import YouTube
 
-# Bruce Lee
-#video_list = ["https://www.youtube.com/watch?v=fifUccuJbEE",
-#              "https://www.youtube.com/watch?v=J3zYme6oi_I",
-#              "https://www.youtube.com/watch?v=nFpWsE6nKnI",
-#              "https://www.youtube.com/watch?v=1eDN4nOhCY0"]
-
-# Idol dance
-#video_list = ["https://www.youtube.com/watch?v=FA9R7UfWtkY",
-#              "https://www.youtube.com/watch?v=M1-e-_QyMp4",
-#              "https://www.youtube.com/watch?v=y1uTFsWXuYI",
-#              "https://www.youtube.com/watch?v=dNh8ZRCiHTg",
-#              "https://www.youtube.com/watch?v=-Q8WW6vVdyA",
-#              "https://www.youtube.com/watch?v=LTXJk9CSjJY"]
-
 # Gravure idol
-video_list = ["https://www.youtube.com/watch?v=m8fMUiQ2m08",
-              "https://www.youtube.com/watch?v=49jAY9dGhiw",
-              "https://www.youtube.com/watch?v=ayGdHp7v0oM",
-              "https://www.youtube.com/watch?v=AKRkZB6jKqQ",
-              "https://www.youtube.com/watch?v=Ku8NFXEqG74",
-              "https://www.youtube.com/watch?v=COQRU0bb6-c",
-              "https://www.youtube.com/watch?v=1ZawgNhvZzY",
-              "https://www.youtube.com/watch?v=iMYaSiFpp0M",
-              "https://www.youtube.com/watch?v=W-vorRyy9Ho",
-              "https://www.youtube.com/watch?v=9Lk4yGmAHZI",
-              "https://www.youtube.com/watch?v=ZF1hJre7_eI",
-              "https://www.youtube.com/watch?v=iv4t6KJlw4o",
-              "https://www.youtube.com/watch?v=TQqqUF33dUg",
-              "https://www.youtube.com/watch?v=3EpWzMVAUd8"]
+video_list = ["https://www.youtube.com/watch?v=jCYz5tBR1q0",
+              "https://www.youtube.com/watch?v=ix75NgPPptE",
+              "https://www.youtube.com/watch?v=1-oHRcTJPns",
+              "https://www.youtube.com/watch?v=AvlMPpcdoJE",
+              "https://www.youtube.com/watch?v=JymEPvWUi3U"]
 
 files = []
 for idx, vd in enumerate(video_list):
     try:
         print("Downloading " + vd)
         yt = YouTube(vd)
-        video = yt.get('mp4', '360p')
-        filename = 'video_%d' % idx
-        yt.set_filename(filename)
-        video.download('./')
+        filename = './video_%d' % idx
+        yt.streams.filter(mime_type='video/mp4').first().download(filename=filename)
         files.append(filename + ".mp4")
     except:
         print("Fail")
